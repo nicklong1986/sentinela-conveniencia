@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101814">
+  <title>SENTINELA</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root{--bg:#0d1210;--panel:#151e19;--panel2:#1b2821;--text:#edf5ef;--muted:#9eb0a4;--green:#39d98a;--yellow:#f5c451;--orange:#ff994d;--red:#ff5d67;--line:#2a3a30}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:12px 14px;font-weight:700}input,select{width:100%;background:#0d1511;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;min-height:46px}label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}.app{max-width:980px;margin:auto;padding:16px 14px 36px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}.brand{font-weight:900;letter-spacing:2px;font-size:22px}.brand span{color:var(--green)}.sub{font-size:12px;color:var(--muted)}.badge{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--green);font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}.stat{font-size:28px;font-weight:850;margin-top:4px}.statlabel{color:var(--muted);font-size:12px}.green{color:var(--green)}.yellow{color:var(--yellow)}.orange{color:var(--orange)}.red{color:var(--red)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.primary{background:var(--green);color:#07120b}.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.section{margin-top:20px}.section h2{font-size:17px;margin:0 0 10px}.hidden{display:none!important}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/-1}.list{display:grid;gap:8px}.lot{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:12px;padding:12px}.lot.warn{border-left-color:var(--yellow)}.lot.urgent{border-left-color:var(--orange)}.lot.expired{border-left-color:var(--red)}.lothead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.lotname{font-weight:750}.small{font-size:12px;color:var(--muted)}.pill{font-size:11px;border-radius:999px;padding:4px 8px;background:#23342a;white-space:nowrap}.pill.yellow{background:#42381d}.pill.orange{background:#482d1c}.pill.red{background:#482126}.btnrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.btnrow button{font-size:12px;padding:8px 10px}.msg{margin:10px 0;padding:11px;border-radius:10px;background:#1c3024;color:var(--green)}.error{background:#3a2022;color:#ffb2b7}.scannerbox{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-top:8px}#reader{width:100%;max-width:440px;margin:auto} .note{font-size:12px;color:var(--muted);margin-top:8px}.empty{padding:20px;text-align:center;color:var(--muted);background:var(--panel);border-radius:12px}.footer{margin-top:22px;color:var(--muted);font-size:11px;text-align:center}
+    @media(min-width:680px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}.actions{grid-template-columns:220px 220px}.formgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  </style>
+</head>
+<body><main class="app">
+  <header class="top"><div><div class="brand">SENTI<span>NELA</span></div><div class="sub">CONTROLE DE VALIDADE · CONVENIÊNCIA</div></div><div class="badge">VERSÃO PILOTO</div></header>
+  <div id="message" class="msg hidden"></div>
+  <section class="grid" id="stats">
+    <div class="card"><div class="statlabel">Produtos cadastrados</div><div class="stat" id="sProducts">—</div></div>
+    <div class="card"><div class="statlabel">Lotes ativos</div><div class="stat" id="sLots">—</div></div>
+    <div class="card"><div class="statlabel">Vencidos</div><div class="stat red" id="sExpired">—</div></div>
+    <div class="card"><div class="statlabel">Vencem em até 7 dias</div><div class="stat orange" id="sUrgent">—</div></div>
+    <div class="card"><div class="statlabel">Atenção · 8–30 dias</div><div class="stat yellow" id="sAttention">—</div></div>
+  </section>
+  <div class="actions"><button class="primary" onclick="showForm('lot')">＋ Registrar validade</button><button class="secondary" onclick="showForm('product')">＋ Cadastrar produto</button></div>
+
+  <section id="productPanel" class="card hidden"><h2>Cadastrar produto</h2><div class="formgrid">
+    <div class="wide"><label>Código de barras</label><input id="pBarcode" inputmode="numeric" placeholder="Escaneie ou digite o código"><div class="btnrow"><button class="secondary" onclick="startScanner('product')">📷 Escanear código</button><button class="secondary" onclick="stopScanner()">Fechar câmera</button></div><div id="scannerProduct" class="scannerbox hidden"><div id="readerProduct"></div></div></div>
+    <div class="wide"><label>Nome do produto *</label><input id="pName" placeholder="Ex.: Energético 473 ml"></div>
+    <div><label>Categoria</label><input id="pCategory" placeholder="Bebidas, doces..."></div><div><label>Localização</label><input id="pLocation" placeholder="Geladeira 1, prateleira..."></div>
+  </div><div class="btnrow"><button class="primary" onclick="saveProduct()">Salvar produto</button><button class="secondary" onclick="hideForms()">Cancelar</button></div></section>
+
+  <section id="lotPanel" class="card hidden"><h2>Registrar lote / validade</h2><div class="formgrid">
+    <div class="wide"><label>Código de barras *</label><input id="lBarcode" inputmode="numeric" placeholder="Escaneie ou digite o código" onblur="lookupBarcode()"><div class="btnrow"><button class="secondary" onclick="startScanner('lot')">📷 Escanear código</button><button class="secondary" onclick="stopScanner()">Fechar câmera</button></div><div id="scannerLot" class="scannerbox hidden"><div id="readerLot"></div></div><div id="productLookup" class="note">Após informar o código, o sistema procura o produto cadastrado.</div></div>
+    <div><label>Quantidade *</label><input id="lQuantity" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 12"></div>
+    <div><label>Data de validade *</label><input id="lExpiry" type="date"></div>
+    <div><label>Data de entrada (opcional)</label><input id="lEntry" type="date"></div>
+    <div class="wide"><label>Observações (opcional)</label><input id="lNotes" placeholder="Ex.: geladeira 2, prateleira de cima"></div>
+  </div><div class="btnrow"><button class="primary" onclick="saveLot()">Registrar lote</button><button class="secondary" onclick="hideForms()">Cancelar</button></div><div class="note">Se o produto ainda não estiver cadastrado, use “Cadastrar produto” primeiro.</div></section>
+
+  <section class="section"><h2>🚨 Prioridades de validade</h2><input id="filter" placeholder="Pesquisar produto ou código..." oninput="renderLots()"><div class="btnrow"><button class="secondary" onclick="setFilter('all')">Todos</button><button class="secondary" onclick="setFilter('expired')">Vencidos</button><button class="secondary" onclick="setFilter('urgent')">Até 7 dias</button><button class="secondary" onclick="setFilter('attention')">8–30 dias</button></div><div id="lotsList" class="list" style="margin-top:10px"><div class="empty">Carregando dados...</div></div></section>
+  <div class="footer">SENTINELA · confira fisicamente os lotes. Produto vencido deve ser retirado de venda conforme o procedimento do estabelecimento.</div>
+</main>
+<script>
+let state={products:[],lots:[],today:'',filter:'all'};let scanner=null;let scannerTarget='lot';
+function callServer(fn,args,success){google.script.run.withSuccessHandler(success).withFailureHandler(e=>showMessage(e.message||String(e),true))[fn](...(args||[]));}
+function showMessage(text,error=false){const el=document.getElementById('message');el.textContent=text;el.className='msg'+(error?' error':'');el.classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>el.classList.add('hidden'),6000)}
+function refresh(){callServer('getInitialData',[],d=>{state=d;document.getElementById('sProducts').textContent=d.stats.products;document.getElementById('sLots').textContent=d.stats.activeLots;document.getElementById('sExpired').textContent=d.stats.expired;document.getElementById('sUrgent').textContent=d.stats.urgent7;document.getElementById('sAttention').textContent=d.stats.attention30;renderLots();});}
+function showForm(which){stopScanner();document.getElementById('productPanel').classList.toggle('hidden',which!=='product');document.getElementById('lotPanel').classList.toggle('hidden',which!=='lot');if(which==='lot')document.getElementById('lBarcode').focus();else document.getElementById('pBarcode').focus();}
+function hideForms(){stopScanner();document.getElementById('productPanel').classList.add('hidden');document.getElementById('lotPanel').classList.add('hidden');}
+function setFilter(f){state.filter=f;renderLots();}
+function daysLeft(date){return Math.round((new Date(date+'T12:00:00')-new Date(state.today+'T12:00:00'))/86400000)}
+function statusFor(n){if(n<0)return ['VENCIDO','expired','red'];if(n<=7)return ['URGENTE','urgent','orange'];if(n<=30)return ['ATENÇÃO','warn','yellow'];return ['NORMAL','','green'];}
+function renderLots(){const root=document.getElementById('lotsList');let lots=(state.lots||[]).filter(l=>l.status==='ATIVO');const q=(document.getElementById('filter').value||'').toLowerCase().trim();lots=lots.filter(l=>!q||(l.product+' '+l.barcode).toLowerCase().includes(q));lots=lots.filter(l=>{const n=daysLeft(l.expiry);if(state.filter==='expired')return n<0;if(state.filter==='urgent')return n>=0&&n<=7;if(state.filter==='attention')return n>=8&&n<=30;return true;});lots.sort((a,b)=>daysLeft(a.expiry)-daysLeft(b.expiry));if(!lots.length){root.innerHTML='<div class="empty">Nenhum lote encontrado para este filtro.</div>';return;}root.innerHTML=lots.slice(0,200).map(l=>{const n=daysLeft(l.expiry),s=statusFor(n),days=n<0?`vencido há ${Math.abs(n)} dia(s)`:n===0?'vence hoje':`faltam ${n} dia(s)`;return `<article class="lot ${s[1]}"><div class="lothead"><div><div class="lotname">${esc(l.product)}</div><div class="small">Código: ${esc(l.barcode)} · Lote ${esc(l.id)}</div></div><span class="pill ${s[2]}">${s[0]}</span></div><div style="margin-top:7px">Quantidade: <b>${l.quantity}</b> · Validade: <b>${formatDate(l.expiry)}</b></div><div class="small">${days}${l.notes?' · '+esc(l.notes):''}</div><div class="btnrow"><button class="secondary" onclick="resolveLot('${esc(l.id)}','CONFERIDO')">Marcar conferido</button><button class="secondary" onclick="resolveLot('${esc(l.id)}','RETIRADO')">Registrar retirada</button><button class="secondary" onclick="resolveLot('${esc(l.id)}','VENDIDO/ESGOTADO')">Esgotado</button></div></article>`;}).join('');if(lots.length>200)root.insertAdjacentHTML('beforeend','<div class="note">Mostrando os primeiros 200 lotes. Use a pesquisa para restringir os resultados.</div>');}
+function formatDate(s){if(!s)return '—';const p=s.split('-');return `${p[2]}/${p[1]}/${p[0]}`;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function saveProduct(){const data={barcode:document.getElementById('pBarcode').value.trim(),name:document.getElementById('pName').value.trim(),category:document.getElementById('pCategory').value.trim(),location:document.getElementById('pLocation').value.trim()};if(!data.barcode||!data.name){showMessage('Informe o código de barras e o nome do produto.',true);return;}callServer('saveProduct',[data],r=>{showMessage(r.updated?'Cadastro de produto atualizado.':'Produto cadastrado com sucesso.');document.getElementById('lBarcode').value=data.barcode;document.getElementById('pName').value='';document.getElementById('pCategory').value='';document.getElementById('pLocation').value='';hideForms();refresh();});}
+function lookupBarcode(){const code=document.getElementById('lBarcode').value.trim();const note=document.getElementById('productLookup');if(!code){note.textContent='Após informar o código, o sistema procura o produto cadastrado.';return;}callServer('findProductByBarcode',[code],p=>{if(p){note.textContent='Produto encontrado: '+p.name+(p.location?' · '+p.location:'');note.style.color='var(--green)';}else{note.textContent='Produto não cadastrado. Cancele e cadastre o produto antes de registrar o lote.';note.style.color='var(--yellow)';}});}
+function saveLot(){const data={barcode:document.getElementById('lBarcode').value.trim(),quantity:document.getElementById('lQuantity').value,expiry:document.getElementById('lExpiry').value,entry:document.getElementById('lEntry').value,notes:document.getElementById('lNotes').value};if(!data.barcode||!data.quantity||!data.expiry){showMessage('Preencha código, quantidade e validade.',true);return;}callServer('saveLot',[data],r=>{showMessage('Lote '+r.id+' registrado para '+r.product+'.');document.getElementById('lQuantity').value='';document.getElementById('lExpiry').value='';document.getElementById('lEntry').value='';document.getElementById('lNotes').value='';document.getElementById('productLookup').textContent='Lote salvo. Podes registrar outro lote.';refresh();});}
+function resolveLot(id,action){if(!confirm('Confirmar ação: '+action+'?'))return;callServer('markLotResolved',[id,action],()=>{showMessage('Providência registrada.');refresh();});}
+async function startScanner(target){scannerTarget=target;stopScanner();const panel=document.getElementById(target==='product'?'scannerProduct':'scannerLot');panel.classList.remove('hidden');const region=target==='product'?'readerProduct':'readerLot';try{if(!window.Html5Qrcode)throw new Error('Biblioteca de leitura não carregou. Verifique a conexão com a internet.');scanner=new Html5Qrcode(region);await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:130},formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.ITF]},decoded=>{const input=document.getElementById(target==='product'?'pBarcode':'lBarcode');input.value=decoded;stopScanner();if(target==='lot')lookupBarcode();showMessage('Código lido: '+decoded);},()=>{});}catch(e){showMessage('Não foi possível abrir a câmera. Autorize o acesso e confira se a página está em HTTPS. Também podes digitar o código manualmente. '+(e.message||''),true);panel.classList.remove('hidden');}}
+function stopScanner(){if(scanner){const old=scanner;scanner=null;old.stop().catch(()=>{}).finally(()=>old.clear().catch(()=>{}));}document.getElementById('scannerProduct').classList.add('hidden');document.getElementById('scannerLot').classList.add('hidden');}
+refresh();
+</script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  let html5QrCode = null;
+
+  function iniciarScanner(inputElementId, callbackSucesso) {
+    // Verifica se o navegador suporta getUserMedia (HTTPS obrigatório)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("Seu navegador ou ambiente não suporta acesso à câmera via HTTPS.");
+      return;
+    }
+
+    const scannerContainer = document.getElementById("reader");
+    if (!scannerContainer) return;
+
+    // Exibe a caixa do scanner se estiver oculta
+    scannerContainer.classList.remove("hidden");
+
+    if (!html5QrCode) {
+      html5QrCode = new Html5Qrcode("reader");
+    }
+
+    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+    html5QrCode.start(
+      { facingMode: "environment" }, // Usa preferencialmente a câmera traseira
+      config,
+      (decodedText, decodedResult) => {
+        // Sucesso na leitura do código de barras
+        document.getElementById(inputElementId).value = decodedText;
+        pararScanner();
+        if (callbackSucesso) callbackSucesso(decodedText);
+      },
+      (errorMessage) => {
+        // Erros de leitura quadro a quadro podem ser ignorados
+      }
+    ).catch((err) => {
+      console.error("Erro ao iniciar a câmera:", err);
+      alert("Não foi possível abrir a câmera. Autorize o acesso e confira se a página está em HTTPS.");
+    });
+  }
+
+  function pararScanner() {
+    if (html5QrCode && html5QrCode.isScanning) {
+      html5QrCode.stop().then(() => {
+        const scannerContainer = document.getElementById("reader");
+        if (scannerContainer) scannerContainer.classList.add("hidden");
+      }).catch((err) => {
+        console.error("Erro ao parar o scanner", err);
+      });
+    }
+  }
+</script>
+</body>
+</html>
