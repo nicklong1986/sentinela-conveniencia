@@ -47,7 +47,6 @@
             font-size: 11px;
             font-weight: bold;
         }
-        /* Cards de Resumo */
         .grid-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -70,9 +69,6 @@
             font-weight: bold;
             color: var(--text-main);
         }
-        .card-full {
-            grid-column: span 2;
-        }
         .indicator-line {
             height: 4px;
             width: 30px;
@@ -81,8 +77,6 @@
             margin-top: 8px;
         }
         .indicator-yellow { background-color: #ffab40; }
-        
-        /* Botões de Ação Principal */
         .grid-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -110,8 +104,6 @@
             color: #000;
         }
         .btn:active { transform: scale(0.97); }
-
-        /* Formulários e Modais / Seções */
         .section-box {
             background-color: var(--card-bg);
             padding: 20px;
@@ -120,7 +112,6 @@
             display: none;
         }
         .section-box.active { display: block; }
-        
         input, select {
             width: 100%;
             padding: 12px;
@@ -133,16 +124,12 @@
             box-sizing: border-box;
         }
         label { font-size: 13px; color: var(--text-secondary); }
-
-        /* Leitor de camera */
         #reader, #reader-prod {
             width: 100%;
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 15px;
         }
-        
-        /* Alerta de Sucesso */
         #toast {
             position: fixed;
             bottom: 20px;
@@ -169,7 +156,6 @@
         <div class="badge">VERSÃO PILOTO</div>
     </header>
 
-    <!-- Resumo da Tela Inicial -->
     <div class="grid-stats">
         <div class="card">
             <div class="card-title">Produtos cadastrados</div>
@@ -191,16 +177,13 @@
         </div>
     </div>
 
-    <!-- Botões Principais -->
     <div class="grid-actions">
         <button class="btn btn-primary" onclick="abrirSecao('lote')">+ Registrar validade</button>
         <button class="btn" onclick="abrirSecao('produto')">+ Cadastrar produto</button>
     </div>
 
-    <!-- Seção: Registrar Validade / Lote -->
     <div id="secao-lote" class="section-box">
         <h3 style="margin-top:0; color:var(--accent-green);">Registar Validade de Lote</h3>
-        
         <div id="reader"></div>
         <button class="btn" style="width:100%; margin-bottom:15px; background:#333;" onclick="iniciarCamera('lote')">📷 Ligar Câmara / Ler Código</button>
         
@@ -220,7 +203,6 @@
         <button class="btn" style="width:100%; margin-top:10px; background:#444;" onclick="fecharSecoes()">Cancelar</button>
     </div>
 
-    <!-- Seção: Cadastrar Novo Produto -->
     <div id="secao-produto" class="section-box">
         <h3 style="margin-top:0; color:var(--accent-green);">Cadastrar Novo Produto</h3>
 
@@ -243,11 +225,9 @@
         <button class="btn" style="width:100%; margin-top:10px; background:#444;" onclick="fecharSecoes()">Cancelar</button>
     </div>
 
-    <!-- Toast de Sucesso -->
     <div id="toast">Operação realizada com sucesso!</div>
 
     <script>
-        // COLOQUE ABAIXO O SEU LINK DE IMPLANTAÇÃO DO GOOGLE APPS SCRIPT TERMINADO EM /exec
         const URL_API = "https://script.google.com/macros/s/AKfycbwr2XVOSJ4zfKd1X83liNymDdzZmi-yerdkxmUP3Xoo9N6Mo-Xqmyj28WPgKTdsc5Smg/exec";
 
         let html5QrCode = null;
@@ -257,15 +237,17 @@
         };
 
         function carregarResumo() {
-            if(URL_API.includes("SEU_ID")) return;
+            if(!URL_API || URL_API.includes("SEU_ID")) return;
             fetch(URL_API)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('val-produtos').innerText = data.produtosCadastrados || 0;
-                    document.getElementById('val-lotes').innerText = data.lotesAtivos || 0;
-                    document.getElementById('val-vencidos').innerText = data.vencidos || 0;
-                    document.getElementById('val-7dias').innerText = data.vencem7Dias || 0;
-                }).catch(err => console.log("Erro ao carregar resumo", err));
+                    if(data) {
+                        document.getElementById('val-produtos').innerText = data.produtosCadastrados || 0;
+                        document.getElementById('val-lotes').innerText = data.lotesAtivos || 0;
+                        document.getElementById('val-vencidos').innerText = data.vencidos || 0;
+                        document.getElementById('val-7dias').innerText = data.vencem7Dias || 0;
+                    }
+                }).catch(err => console.log("Aviso ao carregar resumo", err));
         }
 
         function abrirSecao(tipo) {
@@ -310,9 +292,7 @@
                     pararCamera();
                 },
                 (errorMessage) => {}
-            ).catch(err => {
-                alert("Erro ao aceder à câmara: " + err);
-            });
+            ).catch(err => alert("Erro ao acessar a câmera: " + err));
         }
 
         function pararCamera() {
@@ -326,7 +306,7 @@
             fetch(`${URL_API}?acao=produto&codigo=${codigo}`)
                 .then(res => res.json())
                 .then(data => {
-                    if(data.encontrado) {
+                    if(data && data.encontrado) {
                         document.getElementById('lote-nome').value = data.produto;
                         mostrarToast("Produto encontrado: " + data.produto);
                     } else {
@@ -350,7 +330,7 @@
                 return;
             }
 
-            enviarParaPlanilha(dados, "Validade registada com sucesso! 🚀");
+            enviarParaPlanilha(dados, "Validade registrada com sucesso! 🚀");
         }
 
         function salvarProduto() {
@@ -371,27 +351,27 @@
         }
 
         function enviarParaPlanilha(dados, mensagemSucesso) {
-            if(URL_API.includes("SEU_ID")) {
-                alert("Por favor, configure a URL_API com o link do Google Apps Script.");
-                return;
+            // O segredo para contornar o bloqueio CORS do Google Apps Script em requisições POST:
+            const params = new URLSearchParams();
+            for (const key in dados) {
+                params.append(key, dados[key]);
             }
 
             fetch(URL_API, {
                 method: "POST",
-                body: JSON.stringify(dados)
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: params.toString()
             })
-            .then(res => res.json())
-            .then(response => {
-                if(response.status === "sucesso") {
-                    mostrarToast(mensagemSucesso);
-                    fecharSecoes();
-                    carregarResumo();
-                } else {
-                    alert("Erro ao salvar: " + response.mensagem);
-                }
+            .then(() => {
+                mostrarToast(mensagemSucesso);
+                fecharSecoes();
+                setTimeout(carregarResumo, 1500);
             })
             .catch(err => {
-                alert("Erro de conexão com a planilha.");
+                alert("Erro ao enviar para a planilha. Verifique a conexão.");
                 console.error(err);
             });
         }
