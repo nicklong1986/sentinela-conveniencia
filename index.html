@@ -135,7 +135,7 @@
         label { font-size: 13px; color: var(--text-secondary); }
 
         /* Leitor de camera */
-        #reader {
+        #reader, #reader-prod {
             width: 100%;
             border-radius: 8px;
             overflow: hidden;
@@ -247,12 +247,11 @@
     <div id="toast">Operação realizada com sucesso!</div>
 
     <script>
-        // ⚠️ COLOQUE AQUI O SEU LINK DE IMPLANTAÇÃO DO GOOGLE APPS SCRIPT TERMINADO EM /exec
-        const URL_API = "https://script.google.com/macros/s/AKfycbwr2XVOSJ4zFKdlX83liNvymDdzZmi-yerdkxmUP3Xoo9N6Mo-Xqmyj23WPgKTdsc5Smg/exec";
+        // COLOQUE ABAIXO O SEU LINK DE IMPLANTAÇÃO DO GOOGLE APPS SCRIPT TERMINADO EM /exec
+        const URL_API = "https://script.google.com/macros/s/AKfycbwr2XVOSJ4zfKd1X83liNymDdzZmi-yerdkxmUP3Xoo9N6Mo-Xqmyj28WPgKTdsc5Smg/exec";
 
         let html5QrCode = null;
 
-        // Carregar contadores ao iniciar a página
         window.onload = function() {
             carregarResumo();
         };
@@ -293,7 +292,6 @@
             }, 3000);
         }
 
-        // Sistema de Câmera
         function iniciarCamera(destino) {
             pararCamera();
             const elementId = destino === 'lote' ? 'reader' : 'reader-prod';
@@ -323,7 +321,6 @@
             }
         }
 
-        // Buscar produto automaticamente na planilha ao escanear
         function buscarProdutoAPI(codigo) {
             if(!codigo || URL_API.includes("SEU_ID")) return;
             fetch(`${URL_API}?acao=produto&codigo=${codigo}`)
@@ -339,7 +336,6 @@
                 }).catch(err => console.log(err));
         }
 
-        // Salvar Lote / Validade
         function salvarLote() {
             const dados = {
                 tipo: "lote",
@@ -357,7 +353,6 @@
             enviarParaPlanilha(dados, "Validade registada com sucesso! 🚀");
         }
 
-        // Salvar Novo Produto
         function salvarProduto() {
             const dados = {
                 tipo: "produto",
